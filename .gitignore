@@ -3,3 +3,4 @@ bin/*
 obj/
 bin/
 *.dll
+/.vs/dapper-pubsub-test
