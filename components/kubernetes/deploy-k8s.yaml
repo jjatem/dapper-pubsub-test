@@ -1,0 +1,42 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: dotnet-pubsub-service
+  labels:
+    app: dotnet-pubsub
+spec:
+  selector:
+    app: dotnet-pubsub
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dotnet-pubsub-deployment
+  labels:
+    app: dotnet-pubsub
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dotnet-pubsub
+  template:
+    metadata:
+      labels:
+        app: dotnet-pubsub
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "dotnetapp"
+        dapr.io/app-port: "5000"
+    spec:
+      containers:
+      - name: node
+        image: jjatem/dapr-pubsub-test:latest
+        ports:
+        - containerPort: 5000
+        imagePullPolicy: Always
