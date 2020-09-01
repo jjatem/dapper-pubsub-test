@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -18,12 +19,17 @@ namespace dapper_pubsub_test.Controllers
     {
         private static readonly string pubsubName = "pubsub";
         private readonly ILogger<MessagesController> _logger;
+        private readonly ConcurrentQueue<CloudEvent> _messageQueue;
         private readonly DaprClient _client;
 
-        public MessagesController(ILogger<MessagesController> logger)
+        public MessagesController(ILogger<MessagesController> logger, ConcurrentQueue<CloudEvent> messageQueue)
         {
             _logger = logger;
+            _messageQueue = messageQueue;
 
+            /*
+             * Initialize dapper client
+             */
             var jsonOptions = new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -68,7 +74,8 @@ namespace dapper_pubsub_test.Controllers
         {
             var message = JsonSerializer.Serialize(msg);
             _logger.LogInformation($"Successfully RECEIVED message: [{message}]");
-            _logger.LogInformation("Cloud Event message received...");
+            _messageQueue.Enqueue(msg);
+            _logger.LogInformation("Cloud Event message received and added to background worker processing queue.");
             return Ok();
         }
 
